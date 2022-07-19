@@ -12,6 +12,7 @@ func ConnectDatabase() {
 
 	if err != nil {
 		panic("Falha ao conectar no banco de dados!")
+
 	}
 
 	database.AutoMigrate(&Book{})
