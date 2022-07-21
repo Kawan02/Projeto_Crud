@@ -44,12 +44,13 @@ func CreateBook(c echo.Context) error {
 	// Valida input
 	var input CreateBookInput
 
-	/* Validamos o corpo da solicitação usando o ShouldBindJSON
-	   Se os dados forem inválidos, ele retornará um erro 400
-	*/
-	if err := c.Bind(&input); err != nil {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
+	// Validamos o corpo da solicitação se os dados forem inválidos, ele retornará um erro 400
 
+	if err := c.Bind(&input); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"Mensagem": "Ocorreu um erro inesperado",
+			"Error":    err.Error(),
+		})
 	}
 
 	//Create book --> cria livro
@@ -62,6 +63,7 @@ func CreateBook(c echo.Context) error {
 
 // Atualiza um livro
 func UpdateBook(c echo.Context) error {
+
 	// Obtém o modelo se existir
 	var book models.Book
 	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
@@ -69,26 +71,32 @@ func UpdateBook(c echo.Context) error {
 			"Mensagem:": "Registro não encontrado!",
 			"Error:":    err.Error(),
 		})
-
 	}
 
 	// Validar input
 	var input UpdateBookInput
 	if err := c.Bind(&input); err != nil {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
-
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"Mensagem": "Ocorreu um erro inesperado",
+			"error":    err.Error(),
+		})
 	}
 
-	models.DB.Model(&book).Updates(input)
+	UpdateBookInput := models.Book{Title: input.Title, Author: input.Author}
 
+	models.DB.Model(&book).Updates(&UpdateBookInput)
 	return c.JSON(http.StatusOK, echo.Map{"Livro atualizado:": book})
+
 }
 
 // Delete book --> excluir um livro
 func DeleteBook(c echo.Context) error {
 	var book models.Book
 	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Registro não encontrado!"})
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"Mensagem": "Registro não encontrado!",
+			"Error":    err.Error(),
+		})
 
 	}
 

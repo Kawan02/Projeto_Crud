@@ -20,5 +20,4 @@ func main() {
 
 	r.Start(":8080")
 
-	//r.Logger.Fatal(r.Start(":8080"))
 }
