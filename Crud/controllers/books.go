@@ -45,7 +45,6 @@ func CreateBook(c echo.Context) error {
 	var input CreateBookInput
 
 	// Validamos o corpo da solicitação se os dados forem inválidos, ele retornará um erro 400
-
 	if err := c.Bind(&input); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{
 			"Mensagem": "Ocorreu um erro inesperado",
@@ -75,6 +74,7 @@ func UpdateBook(c echo.Context) error {
 
 	// Validar input
 	var input UpdateBookInput
+
 	if err := c.Bind(&input); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{
 			"Mensagem": "Ocorreu um erro inesperado",
