@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"net/http"
@@ -20,10 +20,12 @@ type UpdateBookInput struct {
 ///FindBooks retornará todos os livros do nosso banco de dados.
 func FindBooks(c echo.Context) error {
 	var books []models.Book
-	models.DB.Find(&books) // Select * From book
+	if err := models.DB.Find(&books).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
 
-	return c.JSON(http.StatusOK, echo.Map{
-		"Listando todos os livros que estão em nossa biblioteca": books})
+	c.JSON(http.StatusOK, echo.Map{"Listando todos os livros que estão em nossa biblioteca": books})
+	return nil
 }
 
 // Encontra um livro
@@ -37,7 +39,8 @@ func FindBook(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"Pesquisa concluída:": book})
+	c.JSON(http.StatusOK, echo.Map{"Pesquisa concluída:": book})
+	return nil
 }
 
 func CreateBook(c echo.Context) error {
@@ -54,10 +57,12 @@ func CreateBook(c echo.Context) error {
 
 	//Create book --> cria livro
 	book := models.Book{Title: input.Title, Author: input.Author}
-	models.DB.Create(&book)
+	if err := models.DB.Create(&book).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
 
-	return c.JSON(http.StatusOK, echo.Map{"Livro criado": book})
-
+	c.JSON(http.StatusOK, echo.Map{"Livro criado": book})
+	return nil
 }
 
 // Atualiza um livro
@@ -82,10 +87,15 @@ func UpdateBook(c echo.Context) error {
 		})
 	}
 
+	//UpdateBookInput atualiza o livro
 	UpdateBookInput := models.Book{Title: input.Title, Author: input.Author}
 
-	models.DB.Model(&book).Updates(&UpdateBookInput)
-	return c.JSON(http.StatusOK, echo.Map{"Livro atualizado:": book})
+	if err := models.DB.Model(&book).Updates(&UpdateBookInput).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	c.JSON(http.StatusOK, echo.Map{"Livro atualizado:": book})
+	return nil
 
 }
 
@@ -100,16 +110,27 @@ func DeleteBook(c echo.Context) error {
 
 	}
 
-	models.DB.Delete(&book)
+	if err := models.DB.Delete(&book).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
 
-	return c.JSON(http.StatusOK, echo.Map{"Livro deletado:": true})
+	c.JSON(http.StatusOK, echo.Map{"Livro deletado:": true})
+	return nil
 }
 
 // DeleteBookTodos vai excluir todos os livros do nosso banco de dados.
 func DeleteBookTodos(c echo.Context) error {
 	var book []models.Book
-	models.DB.Find(&book)
+	if err := models.DB.Find(&book).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
 
-	models.DB.Delete(&book)
-	return c.JSON(http.StatusOK, echo.Map{"Todos os livros foram excluidos com sucesso!": book})
+	if err := models.DB.Delete(&book).Error; err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"Mensagem": "Não há nenhum livro em nossa biblioteca",
+			"Error":    err.Error(),
+		})
+	}
+	c.JSON(http.StatusOK, echo.Map{"Todos os livros foram excluidos com sucesso!": book})
+	return nil
 }
